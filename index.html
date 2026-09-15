@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TV Shows LiveSearch</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <header class="header">
+      <h1 class="header__title">TV Shows Search</h1>
+    </header>
+
+    <div class="container">
+      <h1>Застосунок пошуку фільмів</h1>
+
+      <div class="search">
+        <div class="search__group search__group--input">
+          <label class="search__label-input" for="search">Пошук фільмів</label>
+          <input
+            class="search__input"
+            type="text"
+            id="search"
+            placeholder="Почніть вводити назву фільму"
+          />
+        </div>
+
+        <div class="search__group search__group--checkbox"></div>
+      </div>
+
+      <div id="movies-list" class="movies"></div>
+    </div>
+
+    <script src="js/index.js" defer></script>
+  </body>
+</html>

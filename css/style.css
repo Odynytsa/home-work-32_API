@@ -1,0 +1,336 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700&display=swap");
+
+:root {
+  --bg: #eef0f3;
+  --bg-2: #e7e9ee;
+  --surface: #ffffff;
+  --surface-soft: #f7f8fa;
+  --line: #e1e5ec;
+  --line-strong: #d4d9e4;
+  --text: #262b3a;
+  --muted: #7a8199;
+  --accent: #4e5a73;
+  --accent-hover: #3f4a61;
+  --accent-soft: #eef1f6;
+  --accent-border: #d6dcea;
+  --radius-xl: 18px;
+  --radius-md: 14px;
+  --shadow: 0 10px 28px rgba(38, 43, 58, 0.07);
+  --shadow-card: 0 4px 16px rgba(38, 43, 58, 0.06);
+  --shadow-hover: 0 12px 32px rgba(38, 43, 58, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    sans-serif;
+  background:
+    radial-gradient(700px 400px at 12% 0%, #e6e8ef 0%, transparent 60%),
+    radial-gradient(600px 400px at 92% 4%, #dddfe6 0%, transparent 55%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+  background-attachment: fixed;
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* header — нейтральний, матовий */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(248, 249, 251, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+  padding: 15px 20px;
+}
+.header__title {
+  max-width: 1220px;
+  margin: 0 auto;
+  font-family: "Manrope", sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* container */
+.container {
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 36px 20px 56px;
+}
+.container > h1 {
+  font-family: "Manrope", sans-serif;
+  font-size: clamp(1.75rem, 3.6vw, 2.55rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: #1e2333;
+}
+.container > h1::after {
+  content: "Почніть вводити назву — результати оновлюються в реальному часі";
+  display: block;
+  margin-top: 10px;
+  font-family: "Inter", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+
+/* search — спокійний, без яскравих кольорів */
+.search {
+  margin-top: 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+.search__label-input {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8b92ac;
+  margin: 0 0 10px 4px;
+}
+.search__group--input {
+  position: relative;
+}
+.search__group--input::before {
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin-top: 8px;
+  background: no-repeat center/18px
+    url("data:image/svg+xml,%3Csvg width='18' height='18' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21 21L16.65 16.65M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z' stroke='%237A8199' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.9;
+}
+.search__input {
+  width: 100%;
+  height: 52px;
+  padding: 0 16px 0 44px;
+  border-radius: 12px;
+  border: 1.5px solid var(--line-strong);
+  background: var(--surface-soft);
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 500;
+  outline: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    background 0.2s;
+}
+.search__input::placeholder {
+  color: #9aa2bc;
+  font-weight: 400;
+}
+.search__input:hover {
+  background: #fff;
+  border-color: #c9cfdf;
+}
+.search__input:focus {
+  background: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(78, 90, 115, 0.12);
+}
+.search__group--checkbox:empty {
+  display: none;
+}
+
+/* grid */
+.movies {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 16px;
+  min-height: 120px;
+}
+.movies:empty::before {
+  content: "Спробуйте «Interstellar», «Matrix» або «Batman»";
+  grid-column: 1/-1;
+  text-align: center;
+  padding: 44px 20px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-xl);
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.65);
+  font-size: 0.93rem;
+}
+
+/* card — нейтральна, паперова */
+.movies > * {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  animation: rise 0.38s ease both;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s,
+    border-color 0.2s;
+}
+.movies > *:hover {
+  transform: translateY(-4px);
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-hover);
+}
+.movies > * img {
+  width: 100%;
+  aspect-ratio: 2/3;
+  object-fit: cover;
+  display: block;
+  background: #edeff4;
+  border-bottom: 1px solid var(--line);
+  transition: transform 0.3s;
+  filter: saturate(0.96) contrast(1.02);
+}
+.movies > *:hover img {
+  transform: scale(1.02);
+}
+
+.movies > * > *:not(img) {
+  padding-left: 14px;
+  padding-right: 14px;
+}
+.movies > * h3,
+.movies > * h2,
+.movies > * [class*="title"] {
+  font-family: "Manrope", sans-serif;
+  font-size: 0.96rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 13px 0 6px;
+  color: #1e2333;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.5em;
+}
+.movies > * p,
+.movies > * span,
+.movies > * small {
+  color: var(--muted);
+  font-size: 0.81rem;
+}
+.movies > * p:last-child,
+.movies > * span:last-child {
+  margin-bottom: 14px;
+}
+
+.movies > * [class*="type"] {
+  display: inline-flex;
+  align-items: center;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  color: var(--accent);
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  text-transform: capitalize;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.movies > *:nth-child(1) {
+  animation-delay: 0.02s;
+}
+.movies > *:nth-child(2) {
+  animation-delay: 0.05s;
+}
+.movies > *:nth-child(3) {
+  animation-delay: 0.08s;
+}
+.movies > *:nth-child(4) {
+  animation-delay: 0.11s;
+}
+.movies > *:nth-child(5) {
+  animation-delay: 0.14s;
+}
+.movies > *:nth-child(6) {
+  animation-delay: 0.17s;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d6e2;
+  border-radius: 999px;
+  border: 2px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #c2c8d8;
+}
+
+@media (max-width: 860px) {
+  .movies {
+    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+    gap: 14px;
+  }
+}
+@media (max-width: 560px) {
+  .header {
+    padding: 12px 16px;
+  }
+  .container {
+    padding: 22px 14px 36px;
+  }
+  .search {
+    padding: 14px;
+    border-radius: 16px;
+  }
+  .search__input {
+    height: 50px;
+  }
+  .movies {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+@media (max-width: 380px) {
+  .movies {
+    grid-template-columns: 1fr;
+  }
+  .movies > * img {
+    aspect-ratio: 16/9;
+  }
+}

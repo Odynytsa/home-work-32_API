@@ -7,24 +7,34 @@ const getData = (url) =>
     .then((data) => data.Search)
     .catch((err) => console.log(err));
 
-const addMovieToList = (movie) => {
+const addMovieToList = ({ Poster: poster, Title: title, Year: year }) => {
   const item = document.createElement("div");
   const img = document.createElement("img");
 
   item.classList.add("movie");
 
   img.classList.add("movie__image");
-  img.src = movie.Poster;
-  img.alt = `${movie.Title} ${movie.Year}`;
-  img.title = `${movie.Title} ${movie.Year}`;
+  img.src = poster;
+  img.alt = `${title} ${year}`;
+  img.title = `${title} ${year}`;
 
   item.append(img);
   moviesListElement.append(item);
 };
 
-getData("http://www.omdbapi.com/?apikey=a69a8f20&s=batman").then((movies) =>
-  movies.forEach((movie) => addMovieToList(movie)),
-);
+const inputSearchHandler = (e) => {
+  const searchQuery = e.target.value.trim();
+
+  moviesListElement.innerHTML = "";
+
+  if (!searchQuery) return;
+
+  getData(`http://www.omdbapi.com/?apikey=a69a8f20&s=${searchQuery}`).then(
+    (movies) => movies.forEach((movie) => addMovieToList(movie)),
+  );
+};
+
+searchInput.addEventListener("input", inputSearchHandler);
 
 // const API_BASE = 'https://api.tvmaze.com';
 // const SEARCH_ENDPOINT = `${API_BASE}/search/shows`;

@@ -1,6 +1,17 @@
 const moviesListElement = document.getElementById("movies-list");
 const searchInput = document.getElementById("search");
 
+const debounceTime = (() => {
+  let timerId = null;
+  return (cb, ms) => {
+    if (timerId) {
+      clearTimeout(timerId);
+      timerId = null;
+    }
+    timerId = setTimeout(cb, ms);
+  };
+})();
+
 const getData = (url) =>
   fetch(url)
     .then((res) => res.json())
@@ -22,17 +33,18 @@ const addMovieToList = ({ Poster: poster, Title: title, Year: year }) => {
   moviesListElement.append(item);
 };
 
-const inputSearchHandler = (e) => {
-  const searchQuery = e.target.value.trim();
+const inputSearchHandler = (e) =>
+  debounceTime(() => {
+    const searchQuery = e.target.value.trim();
 
-  moviesListElement.innerHTML = "";
+    moviesListElement.innerHTML = "";
 
-  if (!searchQuery) return;
+    if (!searchQuery || searchQuery.lenght < 4) return;
 
-  getData(`http://www.omdbapi.com/?apikey=a69a8f20&s=${searchQuery}`).then(
-    (movies) => movies.forEach((movie) => addMovieToList(movie)),
-  );
-};
+    getData(`http://www.omdbapi.com/?apikey=a69a8f20&s=${searchQuery}`).then(
+      (movies) => movies.forEach((movie) => addMovieToList(movie)),
+    );
+  }, 2000);
 
 searchInput.addEventListener("input", inputSearchHandler);
 

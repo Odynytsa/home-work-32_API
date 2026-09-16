@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TV Shows LiveSearch</title>
+    <title>Пошук фільмів | LiveSearch</title>
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
     <header class="header">
-      <h1 class="header__title">TV Shows Search</h1>
+      <h1 class="header__title">Пошук фільмів</h1>
     </header>
 
     <div class="container">
@@ -24,8 +24,12 @@
             placeholder="Почніть вводити назву фільму"
           />
         </div>
+      </div>
 
-        <div class="search__group search__group--checkbox"></div>
+      <div class="meta">
+        <p id="status" class="status" role="status" aria-live="polite"></p>
+        <p id="loader" class="loader" hidden>Завантаження…</p>
+        <p id="error" class="error" role="alert" hidden></p>
       </div>
 
       <div id="movies-list" class="movies"></div>

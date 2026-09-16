@@ -1,5 +1,15 @@
 const moviesListElement = document.getElementById("movies-list");
 const searchInput = document.getElementById("search");
+const statusElement = document.getElementById("status");
+const loaderElement = document.getElementById("loader");
+const errorElement = document.getElementById("error");
+
+const API_KEY = "a69a8f20";
+const API_BASE_URL = "https://www.omdbapi.com/";
+const MIN_QUERY_LENGTH = 3;
+const DEBOUNCE_MS = 400;
+
+let searchAbortController = null;
 
 const debounceTime = (() => {
   let timerId = null;
@@ -12,211 +22,141 @@ const debounceTime = (() => {
   };
 })();
 
-const getData = (url) =>
-  fetch(url)
-    .then((res) => res.json())
-    .then((data) => data.Search)
-    .catch((err) => console.log(err));
+const getData = (url, signal) =>
+  fetch(url, { signal })
+    .then((res) => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      return res.json();
+    })
+    .then((data) => {
+      if (signal?.aborted) return [];
+      if (data.Response === "False") throw new Error(data.Error || "Not found");
+      return data.Search ?? [];
+    })
+    .catch((err) => {
+      if (err.name === "AbortError") throw err;
+      if (err instanceof TypeError && String(err.message).includes("fetch")) {
+        throw new Error("Помилка мережі. Перевірте підключення до інтернету.");
+      }
+      throw err;
+    });
 
-const addMovieToList = ({ Poster: poster, Title: title, Year: year }) => {
-  const item = document.createElement("div");
-  const img = document.createElement("img");
-
-  item.classList.add("movie");
-
-  img.classList.add("movie__image");
-  img.src = poster;
-  img.alt = `${title} ${year}`;
-  img.title = `${title} ${year}`;
-
-  item.append(img);
-  moviesListElement.append(item);
+const showLoader = () => {
+  loaderElement.hidden = false;
+};
+const hideLoader = () => {
+  loaderElement.hidden = true;
+};
+const showError = (message) => {
+  const normalized = /not found/i.test(message)
+    ? "Нічого не знайдено за вашим запитом"
+    : message;
+  errorElement.textContent = normalized;
+  errorElement.hidden = false;
+};
+const hideError = () => {
+  errorElement.hidden = true;
+  errorElement.textContent = "";
+};
+const setStatus = (message) => {
+  statusElement.textContent = message;
 };
 
-const inputSearchHandler = (e) =>
-  debounceTime(() => {
-    const searchQuery = e.target.value.trim();
+const createMovieCard = ({
+  Poster: poster,
+  Title: title,
+  Year: year,
+  Type: type,
+}) => {
+  const item = document.createElement("article");
+  item.classList.add("movie");
+
+  if (poster && poster !== "N/A") {
+    const img = document.createElement("img");
+    img.classList.add("movie__image");
+    img.src = poster;
+    img.alt = `${title} ${year}`;
+    img.title = `${title} ${year}`;
+    img.loading = "lazy";
+    item.append(img);
+  } else {
+    const placeholder = document.createElement("div");
+    placeholder.classList.add("movie__image", "movie__poster--placeholder");
+    placeholder.textContent = "Постер відсутній";
+    item.append(placeholder);
+  }
+
+  const titleElement = document.createElement("h3");
+  titleElement.classList.add("movie__title");
+  titleElement.textContent = title ?? "Без назви";
+  titleElement.title = title ?? "";
+  item.append(titleElement);
+
+  const yearElement = document.createElement("p");
+  yearElement.classList.add("movie__year");
+  yearElement.textContent = year ?? "—";
+  item.append(yearElement);
+
+  const typeElement = document.createElement("span");
+  typeElement.classList.add("movie__type");
+  typeElement.textContent = type ?? "unknown";
+  item.append(typeElement);
+
+  return item;
+};
+
+const renderMovies = (movies) => {
+  const fragment = document.createDocumentFragment();
+  movies.forEach((movie) => fragment.append(createMovieCard(movie)));
+  moviesListElement.append(fragment);
+};
+
+const inputSearchHandler = (e) => {
+  const searchQuery = e.target.value.trim();
+
+  debounceTime(async () => {
+    searchAbortController?.abort();
+    searchAbortController = new AbortController();
+    const { signal } = searchAbortController;
 
     moviesListElement.innerHTML = "";
+    hideError();
+    setStatus("");
 
-    if (!searchQuery || searchQuery.lenght < 4) return;
+    if (!searchQuery) return;
 
-    getData(`http://www.omdbapi.com/?apikey=a69a8f20&s=${searchQuery}`).then(
-      (movies) => movies.forEach((movie) => addMovieToList(movie)),
-    );
-  }, 2000);
+    if (searchQuery.length < MIN_QUERY_LENGTH) {
+      setStatus(`Мінімум ${MIN_QUERY_LENGTH} символи для пошуку`);
+      return;
+    }
+
+    showLoader();
+
+    try {
+      const movies = await getData(
+        `${API_BASE_URL}?apikey=${API_KEY}&s=${encodeURIComponent(searchQuery)}`,
+        signal,
+      );
+
+      if (signal.aborted) return;
+
+      if (!movies || movies.length === 0) {
+        setStatus("Нічого не знайдено за вашим запитом");
+        return;
+      }
+
+      renderMovies(movies);
+      setStatus(`Знайдено: ${movies.length}`);
+    } catch (err) {
+      if (err.name === "AbortError" || signal.aborted) return;
+      moviesListElement.innerHTML = "";
+      setStatus("");
+      showError(err.message);
+      console.error("Search error:", err);
+    } finally {
+      if (searchAbortController?.signal === signal) hideLoader();
+    }
+  }, DEBOUNCE_MS);
+};
 
 searchInput.addEventListener("input", inputSearchHandler);
-
-// const API_BASE = 'https://api.tvmaze.com';
-// const SEARCH_ENDPOINT = `${API_BASE}/search/shows`;
-// const MIN_QUERY_LENGTH = 3;
-// const DEBOUNCE_MS = 300;
-
-// const elements = {
-//     input: document.getElementById('search-input'),
-//     results: document.getElementById('results'),
-//     loader: document.getElementById('loader'),
-//     error: document.getElementById('error'),
-//     status: document.getElementById('status')
-// };
-
-// let abortController = null;
-// let debounceTimer = null;
-
-// function showLoader() {
-//     elements.loader.hidden = false;
-//     elements.error.hidden = true;
-//     elements.results.innerHTML = '';
-//     elements.status.textContent = '';
-// }
-
-// function hideLoader() {
-//     elements.loader.hidden = true;
-// }
-
-// function showError(message) {
-//     elements.error.textContent = message;
-//     elements.error.hidden = false;
-//     elements.results.innerHTML = '';
-//     elements.status.textContent = '';
-// }
-
-// function clearError() {
-//     elements.error.hidden = true;
-// }
-
-// function createShowCard(show) {
-//     const { name, year, type, image, id } = show;
-//     const card = document.createElement('article');
-//     card.className = 'show-card';
-//     card.dataset.id = id;
-
-//     const posterHtml = image?.medium
-//         ? `<img class="show-card__poster" src="${image.medium}" alt="${name} poster" loading="lazy">`
-//         : `<div class="show-card__poster--placeholder">Постер відсутній</div>`;
-
-//     const premieredYear = year ? `(${year})` : '';
-//     const showType = type ? type.charAt(0).toUpperCase() + type.slice(1) : 'Невідомо';
-
-//     card.innerHTML = `
-//         <div class="show-card__poster-wrapper">
-//             ${posterHtml}
-//         </div>
-//         <div class="show-card__content">
-//             <h2 class="show-card__title">${name} ${premieredYear}</h2>
-//             <div class="show-card__meta">
-//                 <span class="show-card__badge show-card__badge--type">${showType}</span>
-//                 <span class="show-card__badge">ID: ${id}</span>
-//             </div>
-//         </div>
-//     `;
-
-//     return card;
-// }
-
-// function renderResults(shows) {
-//     elements.results.innerHTML = '';
-
-//     if (shows.length === 0) {
-//         elements.status.textContent = 'Нічого не знайдено за вашим запитом';
-//         return;
-//     }
-
-//     const fragment = document.createDocumentFragment();
-//     shows.forEach(({ show }) => {
-//         fragment.appendChild(createShowCard(show));
-//     });
-
-//     elements.results.appendChild(fragment);
-//     elements.status.textContent = `Знайдено: ${shows.length}`;
-// }
-
-// async function searchShows(query) {
-//     const url = `${SEARCH_ENDPOINT}?q=${encodeURIComponent(query)}`;
-
-//     abortController?.abort();
-//     abortController = new AbortController();
-
-//     try {
-//         const response = await fetch(url, {
-//             signal: abortController.signal,
-//             headers: {
-//                 'Accept': 'application/json'
-//             }
-//         });
-
-//         if (!response.ok) {
-//             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-//         }
-
-//         const data = await response.json();
-
-//         if (abortController.signal.aborted) return;
-
-//         return data;
-//     } catch (error) {
-//         if (error.name === 'AbortError') return;
-//         if (error instanceof TypeError && error.message.includes('fetch')) {
-//             throw new Error('Помилка мережі. Перевірте підключення до інтернету.');
-//         }
-//         throw error;
-//     }
-// }
-
-// function debounceSearch(query) {
-//     clearTimeout(debounceTimer);
-
-//     debounceTimer = setTimeout(async () => {
-//         const trimmed = query.trim();
-
-//         if (trimmed.length < MIN_QUERY_LENGTH) {
-//             elements.results.innerHTML = '';
-//             elements.status.textContent = `Мінімум ${MIN_QUERY_LENGTH} символи для пошуку`;
-//             hideLoader();
-//             return;
-//         }
-
-//         clearError();
-//         showLoader();
-
-//         try {
-//             const data = await searchShows(trimmed);
-
-//             if (!abortController?.signal.aborted) {
-//                 renderResults(data);
-//             }
-//         } catch (error) {
-//             if (!abortController?.signal.aborted) {
-//                 showError(error.message);
-//                 console.error('Search error:', error);
-//             }
-//         } finally {
-//             if (!abortController?.signal.aborted) {
-//                 hideLoader();
-//             }
-//         }
-//     }, DEBOUNCE_MS);
-// }
-
-// function handleInput(event) {
-//     debounceSearch(event.target.value);
-// }
-
-// function init() {
-//     elements.input.addEventListener('input', handleInput);
-//     elements.input.addEventListener('focus', () => {
-//         if (elements.input.value.trim().length >= MIN_QUERY_LENGTH) {
-//             debounceSearch(elements.input.value);
-//         }
-//     });
-
-//     document.addEventListener('visibilitychange', () => {
-//         if (document.hidden) {
-//             abortController?.abort();
-//             clearTimeout(debounceTimer);
-//         }
-//     });
-// }
-
-// document.addEventListener('DOMContentLoaded', init);
